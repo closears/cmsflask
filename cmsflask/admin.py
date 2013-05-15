@@ -4,14 +4,14 @@ from flask.views import MethodView
 from flask.ext.mongoengine.wtf import model_form
 
 from cmsflask.auth import requires_auth
-from cmsflask.models import Post, BlogPost, Video, Image, Quote, Comment
+from cmsflask.models import Post, Content, Category, Comment
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
 
 class List(MethodView):
     decorators = [requires_auth]
-    cls = Post
+    cls = Content
 
     def get(self):
         posts = self.cls.objects.all()
@@ -23,31 +23,30 @@ class Detail(MethodView):
     decorators = [requires_auth]
     # Map post types to models
     class_map = {
-        'post': BlogPost,
-        'video': Video,
-        'image': Image,
-        'quote': Quote,
+        'post': Post,
+        'category': Category,
+        'comment': Comment,
     }
 
     def get_context(self, slug=None):
 
         if slug:
-            post = Post.objects.get_or_404(slug=slug)
+            post = Content.objects.get_or_404(slug=slug)
             # Handle old posts types as well
-            cls = post.__class__ if post.__class__ != Post else BlogPost
-            form_cls = model_form(cls,  exclude=('created_at', 'comments'))
+            cls = post.__class__ if post.__class__ != Content else Post
+            form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
             if request.method == 'POST':
                 form = form_cls(request.form, inital=post._data)
             else:
                 form = form_cls(obj=post)
         else:
             # Determine which post type we need
-            cls = self.class_map.get(request.args.get('type', 'post'))
-            post = cls()
-            form_cls = model_form(cls,  exclude=('created_at', 'comments'))
+            cls = self.class_map.get(request.args.get('type', 'content'))
+            content = cls()
+            form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
             form = form_cls(request.form)
         context = {
-            "post": post,
+            "content": content,
             "form": form,
             "create": slug is None
         }
@@ -62,9 +61,9 @@ class Detail(MethodView):
         form = context.get('form')
 
         if form.validate():
-            post = context.get('post')
-            form.populate_obj(post)
-            post.save()
+            content = context.get('content')
+            form.populate_obj(content)
+            content.save()
 
             return redirect(url_for('admin.index'))
         return render_template('admin/detail.html', **context)

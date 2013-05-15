@@ -1,49 +1,56 @@
 import datetime
 from flask import url_for
 from cmsflask import db
+from slugify import slugify
 
-
-class Post(db.DynamicDocument):
+class Content(db.DynamicDocument):
+    description = db.StringField()
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+    modified_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+
+    def __unicode__(self):
+        return self.description[0:64]
+
+    def save(self, *args, **kwargs):
+        if not self.created_at:
+            self.created_at = datetime.datetime.now()
+        self.modified_at = datetime.datetime.now()
+        return super(Content, self).save(*args, **kwargs)
+
+    @property
+    def type(self):
+        return self.__class__.__name__.lower()
+
+    meta = {
+        'allow_inheritance': True,
+        'indexes': ['-created_at', '-modified_at'],
+        'ordering': ['-modified_at']
+    }
+
+class SlugW(Content):
     title = db.StringField(max_length=255, required=True)
     slug = db.StringField(max_length=255, required=True)
-    comments = db.ListField(db.EmbeddedDocumentField('Comment'))
-
-    def get_absolute_url(self):
-        return url_for('post', kwargs={"slug": self.slug})
 
     def __unicode__(self):
         return self.title
 
-    @property
-    def post_type(self):
-        return self.__class__.__name__
+    def save(self, *args, **kwargs):
+        if not self.slug and self.title:
+            self.slug = slugify(self.title)
+        return super(SlugW, self).save(*args, **kwargs)
 
     meta = {
         'allow_inheritance': True,
-        'indexes': ['-created_at', 'slug'],
-        'ordering': ['-created_at']
+        'indexes': ['slug'],
     }
 
-
-class BlogPost(Post):
-    body = db.StringField(required=True)
-
-
-class Video(Post):
-    embed_code = db.StringField(required=True)
+class Post(SlugW):
+    order = db.IntField(min_value=0)
+    comments = db.ListField(db.EmbeddedDocumentField('Comment'))
 
 
-class Image(Post):
-    image_url = db.StringField(required=True, max_length=255)
+class Comment(Content):
+    author = db.StringField(max_length=255, required=True)
 
-
-class Quote(Post):
-    body = db.StringField(required=True)
-    author = db.StringField(verbose_name="Author Name", required=True, max_length=255)
-
-
-class Comment(db.EmbeddedDocument):
-    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
-    body = db.StringField(verbose_name="Comment", required=True)
-    author = db.StringField(verbose_name="Name", max_length=255, required=True)
+class Category(SlugW):
+    contents = db.ListField(db.EmbeddedDocumentField('Post'))

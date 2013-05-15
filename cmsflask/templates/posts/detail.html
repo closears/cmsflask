@@ -1,45 +1,41 @@
 {% import "_forms.html" as forms %}
 {% extends "base.html" %}
 
+<article>
 {% block page_header %}
-    <div class="page-header">
+    <header class="page-header">
         <h1>{{ post.title }}</h1>
-    </div>
+    </header>
 {% endblock %}
 
 {% block content %}
-    {% if post.body %}
-        {% if post.post_type == 'Quote' %}
-            <blockquote>{{ post.body }}</blockquote>
-            <p>{{ post.author }}</p>
-        {% else %}
-            <p>{{ post.body }}</p>
+    {% if post.description %}
+        {{ post.description }}
+    {% endif %}
+    <hr>
+    <section class="comments">
+        <header>
+            <h2>Comments</h2>
+        </header>
+        {% if post.comments %}
+            {% for comment in post.comments %}
+                <article class="row">
+                    <div class="span4"><strong>{{ comment.author }}</strong>
+                        <small>on {{ comment.modified_at.strftime('%H:%M %Y-%m-%d') }}</small>:</div><div class="span9">{{ comment.description }}</div>
+                    </p>
+                </article>
+            {% endfor %}
         {% endif %}
-    {% endif %}
-    {% if post.embed_code %}
-        {{ post.embed_code|safe() }}
-    {% endif %}
-    {% if post.image_url %}
-        <p><img src="{{ post.image_url }}"/><p>
-    {% endif %}  <p>{{ post.created_at.strftime('%H:%M %Y-%m-%d') }}</p>
-    <hr>
-    <h2>Comments</h2>
-    {% if post.comments %}
-        {% for comment in post.comments %}
-            <p>{{ comment.body }}</p>
-            <p><strong>{{ comment.author }}</strong>
-                <small>on {{ comment.created_at.strftime('%H:%M %Y-%m-%d') }}</small>
-            </p>
-            {{ comment.text }}
-        {% endfor %}
-    {% endif %}
-
-    <hr>
-    <h2>Add a comment</h2>
-    <form action="." method="post">
-        {{ forms.render(form) }}
-        <div class="actions">
-            <input type="submit" class="btn primary" value="comment">
-        </div>
-    </form>
+        <hr>
+        <footer>
+            <h3>Add a comment</h3>
+            <form action="." method="post">
+                {{ forms.render(form) }}
+                <div class="actions">
+                    <input type="submit" class="btn primary" value="comment">
+                </div>
+            </form>
+        </footer>
+    </section>
 {% endblock %}
+</article>
