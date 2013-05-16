@@ -43,7 +43,13 @@ class Detail(MethodView):
             # Determine which post type we need
             cls = self.class_map.get(request.args.get('type', 'content'))
             content = cls()
-            form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
+            if isinstance(content, Post):
+                form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
+            elif isinstance(content, Category):
+                form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'slug', 'contents'))
+            elif isinstance(content, Comment):
+                form_cls = model_form(cls,  exclude=('created_at', 'modified_at'))
+
             form = form_cls(request.form)
         context = {
             "content": content,
