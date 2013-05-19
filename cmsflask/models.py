@@ -47,7 +47,7 @@ class SlugW(Content):
 class Post(SlugW):
     order = db.IntField(min_value=0)
     comments = db.ListField(db.EmbeddedDocumentField('Comment'))
-    categories = db.ListField(db.ReferenceField('Category'))
+    categories = db.ListField(db.ReferenceField('Category',dbref=True))
 
 
 class Comment(Content):

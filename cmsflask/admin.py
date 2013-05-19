@@ -43,7 +43,6 @@ class Detail(MethodView):
             # Determine which post type we need
             cls = self.class_map.get(request.args.get('type', 'content'))
             content = cls()
-            # TODO create a method to get the fields excluded tuple
             if isinstance(content, Post):
                 form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
             elif isinstance(content, Category):
