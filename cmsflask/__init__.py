@@ -14,7 +14,9 @@ if __name__ == '__main__':
 def register_blueprints(app):
     from cmsflask.views import posts
     from cmsflask.admin import admin
+    from cmsflask.errors import errors
     app.register_blueprint(posts)
     app.register_blueprint(admin)
+    app.register_blueprint(errors)
 
 register_blueprints(app)

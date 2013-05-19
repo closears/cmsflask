@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+<article>
+{% block page_header %}
+    <header class="page-header">
+        <h1>{{ error_num }}</h1>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <p class="error">
+        {{ error }}
+    </p>
+{% endblock %}
+
+</article>
