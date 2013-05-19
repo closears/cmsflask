@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, render_template, url_for
 from flask.views import MethodView
-from cmsflask.models import Post, Comment
+from cmsflask.models import Post, Comment,Content
 from flask.ext.mongoengine.wtf import model_form
 
 posts = Blueprint('posts', __name__, template_folder='templates')
@@ -18,7 +18,7 @@ class DetailView(MethodView):
     form = model_form(Comment, exclude=['created_at','modified_at'])
 
     def get_context(self, slug):
-        post = Post.objects.get_or_404(slug=slug)
+        post = Content.objects.get_or_404(slug=slug)
         form = self.form(request.form)
 
         context = {

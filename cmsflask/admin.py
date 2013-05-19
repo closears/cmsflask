@@ -31,14 +31,14 @@ class Detail(MethodView):
     def get_context(self, slug=None):
 
         if slug:
-            post = Content.objects.get_or_404(slug=slug)
+            content = Content.objects.get_or_404(slug=slug)
             # Handle old posts types as well
-            cls = post.__class__ if post.__class__ != Content else Post
+            cls = content.__class__ if content.__class__ != Content else Post
             form_cls = model_form(cls,  exclude=('created_at', 'modified_at', 'comments', 'slug'))
             if request.method == 'POST':
-                form = form_cls(request.form, inital=post._data)
+                form = form_cls(request.form, inital=content._data)
             else:
-                form = form_cls(obj=post)
+                form = form_cls(obj=content)
         else:
             # Determine which post type we need
             cls = self.class_map.get(request.args.get('type', 'content'))
@@ -79,3 +79,4 @@ class Detail(MethodView):
 admin.add_url_rule('/admin/', view_func=List.as_view('index'))
 admin.add_url_rule('/admin/create/', defaults={'slug': None}, view_func=Detail.as_view('create'))
 admin.add_url_rule('/admin/<slug>/', view_func=Detail.as_view('edit'))
+admin.add_url_rule('/admin/delete/<slug>/', view_func=Detail.as_view('delete'))

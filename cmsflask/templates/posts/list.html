@@ -12,6 +12,12 @@
             {% with total=post.comments|length %}
                 {{ total }} comment {%- if total > 1 %}s{%- endif -%}
             {% endwith %}
+            {%  if post.categories|length > 0 %} |
+                {% for category in post.categories %}
+                    <a href="{{ url_for('posts.detail', slug=category.slug) }}">{{ category.title }}</a>,
+                {% endfor %}
+            {% endif %}
+
         </p>
         </article>
     {% endfor %}
