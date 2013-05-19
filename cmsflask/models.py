@@ -47,10 +47,11 @@ class SlugW(Content):
 class Post(SlugW):
     order = db.IntField(min_value=0)
     comments = db.ListField(db.EmbeddedDocumentField('Comment'))
+    categories = db.ListField(db.ReferenceField('Category'))
 
 
 class Comment(Content):
     author = db.StringField(max_length=255, required=True)
 
 class Category(SlugW):
-    contents = db.ListField(db.EmbeddedDocumentField('Post'))
+    img = db.StringField(max_length=512)
