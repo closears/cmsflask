@@ -29,7 +29,7 @@ class Content(db.DynamicDocument):
 
 class SlugW(Content):
     title = db.StringField(max_length=255, required=True)
-    slug = db.StringField(max_length=255, required=True)
+    slug = db.StringField(max_length=255, required=True, unique=True)
 
     def __unicode__(self):
         return self.title
