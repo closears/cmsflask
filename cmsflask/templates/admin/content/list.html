@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+  <table class="condensed-table zebra-striped">
+    <thead>
+      <th>Title</th>
+      <th>Created</th>
+      <th>Type</th>
+      <th>Actions</th>
+    </thead>
+    <tbody>
+    {% for content in contents %}
+      <tr>
+        <th><a href="{{ url_for('admin.content', slug=content.slug) }}">{{ content.title }}</a></th>
+        <td>{{ content.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>{{ content.type }}</td>
+        <td>
+            <a href="{{ url_for("admin.content", slug=content.slug) }}" class="btn primary">Edit</a>
+            <a href="{{ url_for("admin.content", slug=content.slug, _method="DELETE") }}" class="btn primary">Delete</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
