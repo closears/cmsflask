@@ -8,18 +8,20 @@ from cmsflask.models import Post, Content, Category, Comment
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
+def register_api(app, view_class, endpoint, url, pk='id', pk_type='int'):
+    view_func = view_class.as_view(endpoint)
+    app.add_url_rule(url, defaults={pk: None}, view_func=view_func, methods=['GET'])
+    app.add_url_rule(url, view_func=view_func, methods=['POST'])
+    app.add_url_rule('%s<%s:%s>' % (url, pk_type, pk), view_func=view_func, methods=['GET', 'PUT', 'DELETE'])
 
-class List(MethodView):
-    decorators = [requires_auth]
+def register_crud(app, view_class, endpoint, url, pk='id', pk_type='int'):
+    app.add_url_rule('%s%s' % (url, endpoint) , view_func=view_class.as_view('index'))
+    app.add_url_rule('%s%s/%s' % (url, endpoint, 'create'), defaults={pk: None}, view_func=view_class.as_view('create'))
+    app.add_url_rule('%s%s/%s/<%s:%s>' % (url, endpoint, 'edit', pk_type, pk), view_func=view_class.as_view('edit'))
+    app.add_url_rule('%s%s/%s/<%s:%s>' % (url, endpoint, 'delete', pk_type, pk), view_func=view_class.as_view('delete'))
+
+class AdminContent(MethodView):
     cls = Content
-
-    def get(self):
-        posts = self.cls.objects.all()
-        return render_template('admin/list.html', posts=posts)
-
-
-class Detail(MethodView):
-
     decorators = [requires_auth]
     # Map post types to models
     class_map = {
@@ -28,7 +30,8 @@ class Detail(MethodView):
         'comment': Comment,
     }
 
-    def get_context(self, slug=None):
+
+    def _get_context(self, slug=None):
 
         if slug:
             content = Content.objects.get_or_404(slug=slug)
@@ -59,10 +62,58 @@ class Detail(MethodView):
         return context
 
     def get(self, slug):
-        context = self.get_context(slug)
+        if slug:
+            context = self._get_context(slug)
+            return render_template('admin/detail.html', **context)
+        else:
+            cs= self.cls.objects.all()
+            return render_template('admin/list.html', contents=cs)
+
+    def post(self):
+        #create a content
+        context = self.get_context()
+        form = context.get('form')
+
+        if form.validate():
+            content = context.get('content')
+            form.populate_obj(content)
+            content.save()
+
+            return redirect(url_for('admin.content'))
         return render_template('admin/detail.html', **context)
 
+    def delete(self, slug):
+        content = self._get_context(slug)
+        content.delete()
+        return redirect(url_for('admin.content'))
+
+    def put(self, slug):
+        #update a single content
+        return self.post(self,slug)
+
+"""
+    decorators = [requires_auth]
+    # Map post types to models
+    class_map = {
+        'post': Post,
+        'category': Category,
+        'comment': Comment,
+    }
+
+    cls = Content
+
+
+
+    def get(self, slug):
+        if slug:
+            context = self.get_context(slug)
+            return render_template('admin/detail.html', **context)
+        else:
+            cs= self.cls.objects.all()
+            return render_template('admin/list.html', contents=cs)
+
     def post(self, slug):
+        #create a content
         context = self.get_context(slug)
         form = context.get('form')
 
@@ -74,9 +125,16 @@ class Detail(MethodView):
             return redirect(url_for('admin.index'))
         return render_template('admin/detail.html', **context)
 
-
+    def put(self, slug):
+        #update a single content
+        self.post(self,slug)
+"""
 # Register the urls
-admin.add_url_rule('/admin/', view_func=List.as_view('index'))
-admin.add_url_rule('/admin/create/', defaults={'slug': None}, view_func=Detail.as_view('create'))
-admin.add_url_rule('/admin/<slug>/', view_func=Detail.as_view('edit'))
-admin.add_url_rule('/admin/delete/<slug>/', view_func=Detail.as_view('delete'))
+#admin.add_url_rule('/admin/', view_func=List.as_view('index'))
+#admin.add_url_rule('/admin/create/', defaults={'slug': None}, view_func=Detail.as_view('create'))
+#admin.add_url_rule('/admin/<slug>/', view_func=Detail.as_view('edit'))
+#admin.add_url_rule('/admin/delete/<slug>/', view_func=Detail.as_view('delete'))
+#app.add_url_rule('/users/<int:user_id>', view_func=user_view, methods=['GET', 'PUT', 'DELETE'])
+
+register_api(admin, AdminContent, 'content', '/admin/', pk='slug', pk_type='string')
+register_crud(admin, AdminContent, 'content', '/admin/', pk='slug', pk_type='string')

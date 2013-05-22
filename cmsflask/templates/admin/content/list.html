@@ -11,12 +11,12 @@
     <tbody>
     {% for content in contents %}
       <tr>
-        <th><a href="{{ url_for('admin.content', slug=content.slug) }}">{{ content.title }}</a></th>
+        <th>{#<a href="{{ url_for('admin_content.index', slug=content.slug) }}">{{ content.title }}</a>#}</th>
         <td>{{ content.created_at.strftime('%Y-%m-%d') }}</td>
         <td>{{ content.type }}</td>
         <td>
-            <a href="{{ url_for("admin.content", slug=content.slug) }}" class="btn primary">Edit</a>
-            <a href="{{ url_for("admin.content", slug=content.slug, _method="DELETE") }}" class="btn primary">Delete</a>
+          {#  <a href="{{ url_for("admin_content.index", slug=content.slug) }}" class="btn primary">Edit</a>
+            <a href="{{ url_for("admin_content.index", slug=content.slug, _method="DELETE") }}" class="btn primary">Delete</a>#}
         </td>
       </tr>
     {% endfor %}
